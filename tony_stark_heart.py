@@ -1,8 +1,7 @@
-from microbit import display, Image, pin2, button_a, button_b
+from microbit import display, Image, pin2, button_a, button_b, sleep
 import neopixel
 import random
 import music
-import itertools
 
 
 class Color():
@@ -89,39 +88,46 @@ class Index():
             self.i = 0
         return self.i
         
-def heartbeat():
+def heartbeat_sound():
     music.play(["C1:1"], wait=False)
 
+def heartbeat(led):
+    if led in (7, 15, 23):
+        display.show(Image.HEART_SMALL, wait=False)
+        heartbeat_sound()
+    else:
+        display.show(Image.HEART, wait=False)
+        if led in (1, 10, 18):
+            heartbeat_sound()
+    
 np = neopixel.NeoPixel(pin2, 24)
 i = Index()
 mode = 0
-colors = Colors()
-color = colors.get_next_color() 
-LEDS = range(24)
+#colors = Colors()
+#color = colors.get_next_color() 
+#LEDS = range(24)
 
-while True:
-    if button_a.get_presses():
-        mode += 1
-        if mode >= 4:
-            mode = 1
-    if button_b.get_presses():
-        color = colors.get_next_color()
-    c = list(color())
-    if i in (7, 15, 23):
-        display.show(Image.HEART_SMALL)
-        heartbeat()
-    else:
-        display.show(Image.HEART)
-        if i in (0, 8, 16):
-            heartbeat()
-    if mode == 0:
-        for o in [i() - x for x in range(5)]:
-            np[o] = (max(z - 15 * abs(o), 0) for z in c)
-        np.show()
-        sleep(100)
-        np.clear()
-    elif mode == 1:
-        np[i()] = c
-        np.show()
-    elif mode == 2:
-        pass
+while mode == 0:
+    led = i()
+    #if button_a.get_presses():
+    #    mode += 1
+    #    if mode >= 4:
+    #        mode = 1
+    #if button_b.get_presses():
+    #    color = colors.get_next_color()
+    #c = list(color())
+
+    heartbeat(led)
+
+    for other_leds in (0, -1, -2, -3, -4):
+        other_led = led + other_leds
+        color_for_led = [max(c - 51 * abs(other_leds), 0) for c in [255, 0, 255]]
+        np[other_led] = color_for_led
+    np.show()
+    sleep(100)
+    np.clear()
+    #elif mode == 1:
+    #    np[i()] = c
+    #    np.show()
+    #elif mode == 2:
+    #    pass
