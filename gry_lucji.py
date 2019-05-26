@@ -1,5 +1,5 @@
 import random
-from microbit import *
+from microbit import Image, display, pin1, pin2, pin8, pin12, pin13, pin14, pin15, button_a, button_b, accelerometer, sleep
 import music
 
 
@@ -10,7 +10,10 @@ class DiceStandard():
     def roll(self):
         self.num = random.choice(list(self.sides.keys()))
         return self.sides[self.num]
-        
+     
+    def melody(self):
+        return self.melodies[self.num]
+
     sides = {
         '1': Image(
             "00000:"
@@ -55,76 +58,19 @@ class DiceStandard():
             "90009"
         )
     }
-
-
-dice_standard = DiceStandard()
-
-class Main():
-    def __init__(self):
-        self.games = (
-            self.game_1,
-            self.game_2,
-            self.game_3
-        )
-        self.current_game_index = 0
-        self.current_game = self.games[self.current_game_index]
-
-    def next_game(self):
-        self.current_game_index += 1
-        if self.current_game_index >= len(self.games):
-            self.current_game_index = 0
-        self.current_game = self.games[self.current_game_index]
     
-    def game_1(self):
-        # TODO Press selected button
-        side = random.choice(('up', 'down', 'left', 'right'))
-        if side == 'up':
-            img = Image.ARROW_N
-        elif side == 'down':
-            img = Image.ARROW_S
-        elif side == 'left':
-            img = Image.ARROW_W
-        else:
-            img = Image.ARROW_E
-        display.show(img)
-        button_pressed = False
-        while not button_pressed:
-            if(side == 'up' and (pin2.read_analog() > 900 or not pin13.read_digital())) or \
-                    (side == 'down' and (pin2.read_analog() < 300 or not pin15.read_digital())) or \
-                    (side == 'left' and (pin1.read_analog() < 300 or not pin12.read_digital())) or \
-                    (side == 'right' and (pin1.read_analog() > 900 or not pin14.read_digital())):
-                display.show(Image.YES)
-                music.play(music.JUMP_UP)
-                button_pressed = True
-            elif(side == 'up' and not (pin2.read_analog() > 900 or not pin13.read_digital())) or \
-                    (side == 'down' and not (pin2.read_analog() < 300 or not pin15.read_digital())) or \
-                    (side == 'left' and not (pin1.read_analog() < 300 or not pin12.read_digital())) or \
-                    (side == 'right' and not (pin1.read_analog() > 900 or not pin14.read_digital())):
-                display.show(Image.NO)
-                music.play(music.JUMP_DOWN)
-            else:
-                display.show(img)
+    melodies = {
+        '1': ["C4:2"],
+        '2': ["C4:2", "D4:2"],
+        '3': ["C4:2", "D4:2", "E4:2"],
+        '4': ["C4:2", "D4:2", "E4:2", "F4:2"],
+        '5': ["C4:2", "D4:2", "E4:2", "F4:2", "G4:2"],
+        '6': ["C4:2", "D4:2", "E4:2", "F4:2", "G4:2", "A4:2"]
+    }
 
-    def game_2(self):
-        # Roll die
-        if accelerometer.was_gesture("shake"):
-            for i in range(10, 500, 10):
-                display.clear()
-                sleep(50)
-                rolled = dice_standard.roll()
-                display.show(rolled)
-                music.play(["C4:1"], wait=False)
-                sleep(i)
-            music.play(music.PUNCHLINE, wait=False)
-            for i in range(4):
-                display.clear()
-                sleep(500)
-                display.show(rolled)
-                sleep(500)
-            
 
-    def game_3(self):
-        # Display images on buttons
+class game_a():
+    def play(self):
         p1 = pin1.read_analog()
         p2 = pin2.read_analog()
         if p1 <= 300:
@@ -164,11 +110,97 @@ class Main():
                     music.play(["C1:1", "C#1:1"])
 
         display.clear()
+        
+        
+class game_b():
+    valid_choices = [0, 1, 3, 4]
+    def __init__(self):
+        self.pix = None
+
+    def set_random_pix(self):
+        self.pix = [random.choice(self.valid_choices), random.choice(self.valid_choices), 9]
+
+    def play(self):
+        if self.pix:
+            self.logic()
+        else:
+            self.set_random_pix()           
+
+    def logic(self):
+        display.clear()
+        p1 = pin1.read_analog()
+        p2 = pin2.read_analog()
+        if p1 <= 204:
+            x = 0
+        elif 204 < p1 <= 408:
+            x = 1
+        elif 408 < p1 <= 612:
+            x = 2
+        elif 612 < p1 <= 816:
+            x = 3
+        else:
+            x = 4
+
+        if p2 <= 204:
+            y = 4
+        elif 204 < p2 <= 408:
+            y = 3
+        elif 408 < p2 <= 612:
+            y = 2
+        elif 612 < p2 <= 816:
+            y = 1
+        else:
+            y = 0
+
+        display.set_pixel(*self.pix)
+        display.set_pixel(x,y,9)
+        
+        if [x, y, 9] == self.pix:
+            self.pix = None
+            display.show(Image.HAPPY)
+            music.play(music.JUMP_UP)
+            sleep(500)
+        if self.btn_pressed():
+            sleep(150)
+            self.set_random_pix()
+
+    def btn_pressed(self):
+        return not pin15.read_digital() or not pin14.read_digital() or not pin13.read_digital() or not pin12.read_digital() or not pin8.read_digital()
+            
+def game_shake():
+    if accelerometer.was_gesture("shake"):
+        for w in shake_waits:
+            display.clear()
+            sleep(50)
+            rolled = dice.roll()
+            display.show(rolled)
+            music.play(["C4:1"], wait=False)
+            sleep(w)
+        music.play(dice.melody(), wait=False)
+        for i in range(4):
+            display.clear()
+            sleep(500)
+            display.show(rolled)
+            sleep(500)
 
 ### MAIN LOOP ###
-games = Main()
+shake_waits = [
+    10, 10, 10, 10, 10,
+    10, 20, 40, 60, 80,
+    100, 120, 140, 160, 180,
+    200, 250, 300, 400, 500
+]
+current_game = game_a()
+dice = DiceStandard()
 
 while True:
+    game_shake()
     if button_a.get_presses():
-        games.next_game()
-    games.current_game()
+        current_game = game_a()
+        display.show("A")
+        sleep(500)
+    if button_b.get_presses():
+        current_game = game_b()
+        display.show("B")
+        sleep(500)
+    current_game.play()
