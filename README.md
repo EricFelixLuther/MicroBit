@@ -29,7 +29,7 @@ It's great for cosplaying Iron Man, or just geeking out in a t-shirt ;-)
 
 ## Maqueen and Waveshare Joystick
 
-This project is split into two .hex files as it was designed using makecode.microbit.org platform instead of standard Python. This was dictated by the fact that there are no (easily accessible) python libraries for both: [Maqueen robot](https://wiki.dfrobot.com/micro_Maqueen_for_micro_bit_SKU_ROB0148-E) and [WaveShare Joystick](https://www.waveshare.com/wiki/Joystick_for_micro:bit).
+This project is split into two .hex files as it was designed using makecode.microbit.org platform instead of standard Python. This was dictated by the fact that there are no (easily accessible) python libraries for both: [Maqueen robot v3](https://wiki.dfrobot.com/micro_Maqueen_for_micro_bit_SKU_ROB0148-E) and [WaveShare Joystick](https://www.waveshare.com/wiki/Joystick_for_micro:bit).
 
 #### Waveshare_joypad_for_Maqueen.hex
 
